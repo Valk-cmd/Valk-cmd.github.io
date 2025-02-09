@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -28,7 +30,7 @@
             justify-content: center;
             align-items: center;
             text-align: center;
-            z-index: 10; /* Asegura que el contenido esté sobre el canvas */
+            z-index: 10;
         }
 
         /* Estilos del título */
@@ -71,10 +73,10 @@
             left: 0;
             width: 100%;
             height: 100%;
-            z-index: 0; /* Detrás del contenido */
+            z-index: 0;
         }
 
-        /* Estilos del botón de recarga */
+        /* Botón de recarga */
         .reload-button {
             margin-top: 20px;
             padding: 10px 20px;
@@ -101,7 +103,9 @@
     <div class="matrix-container">
         <h1>Don't Tread on Me</h1>
         <p>Precio del Oro : <span id="precioOro">Cargando...</span> EUR</p>
+        <p>Precio del Oro por gramo: <span id="precioOroGramo">Cargando...</span> EUR</p>
         <p>Precio de la Plata : <span id="precioPlata">Cargando...</span> EUR</p>
+        <p>Precio de la Plata por gramo: <span id="precioPlataGramo">Cargando...</span> EUR</p>
         <p>Precio de Bitcoin Cash (BCH): <span id="precioBCH">Cargando...</span> EUR</p>
         
         <!-- Barra de progreso -->
@@ -118,11 +122,9 @@
         const canvas = document.getElementById('matrixCanvas');
         const ctx = canvas.getContext('2d');
 
-        // Ajustar tamaño del canvas
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
 
-        // Caracteres Matrix
         const matrixChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ123456789@#$%^&*()*&^%";
         const letters = matrixChars.split("");
 
@@ -134,7 +136,7 @@
             ctx.fillStyle = "rgba(0, 0, 0, 0.1)";
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            ctx.fillStyle = "#FFD700"; /* Letras en dorado neón */
+            ctx.fillStyle = "#FFD700";
             ctx.font = `${fontSize}px monospace`;
 
             for (let i = 0; i < drops.length; i++) {
@@ -153,27 +155,32 @@
 
         setInterval(drawMatrixEffect, 50);
 
-        // Redimensionar el canvas si cambia el tamaño de la ventana
         window.addEventListener("resize", () => {
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
         });
 
-        // Función para obtener precios en tiempo real
         async function obtenerPrecios() {
             try {
                 const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=pax-gold,kinesis-silver,bitcoin-cash&vs_currencies=eur');
                 const data = await response.json();
 
-                document.getElementById('precioOro').textContent = data['pax-gold'] ? data['pax-gold'].eur : 'No disponible';
-                document.getElementById('precioPlata').textContent = data['kinesis-silver'] ? data['kinesis-silver'].eur : 'No disponible';
+                const precioOroOnza = data['pax-gold'] ? data['pax-gold'].eur : 'No disponible';
+                const precioPlataOnza = data['kinesis-silver'] ? data['kinesis-silver'].eur : 'No disponible';
+
+                const precioOroGramo = (precioOroOnza !== 'No disponible') ? (precioOroOnza / 31.1035).toFixed(2) : 'No disponible';
+                const precioPlataGramo = (precioPlataOnza !== 'No disponible') ? (precioPlataOnza / 31.1035).toFixed(2) : 'No disponible';
+
+                document.getElementById('precioOro').textContent = precioOroOnza;
+                document.getElementById('precioOroGramo').textContent = precioOroGramo;
+                document.getElementById('precioPlata').textContent = precioPlataOnza;
+                document.getElementById('precioPlataGramo').textContent = precioPlataGramo;
                 document.getElementById('precioBCH').textContent = data['bitcoin-cash'] ? data['bitcoin-cash'].eur : 'No disponible';
             } catch (error) {
                 console.error('Error al obtener los precios:', error);
             }
         }
 
-        // Función para actualizar el progreso del año
         function actualizarProgresoAnual() {
             const fechaInicio = new Date(new Date().getFullYear(), 0, 1);
             const fechaFin = new Date(new Date().getFullYear() + 1, 0, 1);
@@ -185,11 +192,9 @@
         setInterval(actualizarProgresoAnual, 1000);
         actualizarProgresoAnual();
 
-        // Llamar a la función cada minuto
         obtenerPrecios();
         setInterval(obtenerPrecios, 60000);
     </script>
 
 </body>
 </html>
-
